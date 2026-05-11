@@ -74,6 +74,21 @@ def recall(query: str) -> str:
         if not results:
             return ""
 
+        # v2: update access tracking for hit memories
+        for result in results:
+            try:
+                meta = result.get("metadata", {})
+                new_access_count = meta.get("access_count", 0) + 1
+                chroma_client.update_metadata(
+                    result["id"],
+                    {
+                        "access_count": new_access_count,
+                        "last_accessed": datetime.now().isoformat(),
+                    },
+                )
+            except Exception:
+                pass
+
         # Format results
         format_template = recall_cfg.get(
             "format_template",

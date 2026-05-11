@@ -87,6 +87,61 @@ Please output JSON according to the format above."""
         response = self._call_llm(self.system_prompt, user_prompt)
         return self._parse_response(response)
 
+    def incremental_merge(
+        self,
+        existing: dict[str, Any],
+        new_memories: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Merge new memories into an existing summary.
+
+        Args:
+            existing: Current summary dict with summary/topics/key_facts/importance/sentiment.
+            new_memories: List of new memory dicts to merge in.
+
+        Returns:
+            Updated summary dict.
+        """
+        existing_text = json.dumps(existing, ensure_ascii=False, indent=2)
+        new_items = []
+        for i, mem in enumerate(new_memories, 1):
+            new_items.append(
+                f"- {mem.get('content', '')}\n"
+                f"  topics: {mem.get('metadata', {}).get('topics', [])}\n"
+                f"  importance: {mem.get('metadata', {}).get('importance', 0.5)}"
+            )
+        new_text = "\n".join(new_items)
+
+        merge_prompt = self._load_merge_prompt() or (
+            "You are a memory consolidation assistant. "
+            "Below is an existing summary and some new memories. "
+            "Merge the new memories into the summary, preserving all existing information. "
+            "Add new topics if needed, enrich existing topics where relevant. "
+            "Update importance and sentiment as appropriate. "
+            "Output must be valid JSON in the same format."
+        )
+
+        user_prompt = f"""## Existing Summary
+{existing_text}
+
+## New Memories to Merge
+{new_text}
+
+Please output the merged JSON (same format)."""
+
+        response = self._call_llm(merge_prompt, user_prompt)
+        return self._parse_response(response)
+
+    def _load_merge_prompt(self) -> str | None:
+        """Load merge prompt from prompts/merge_conversation.txt if exists."""
+        prompt_file = Path(__file__).parent.parent / "prompts" / "merge_conversation.txt"
+        if prompt_file.exists():
+            try:
+                with open(prompt_file, "r", encoding="utf-8") as f:
+                    return f.read()
+            except Exception:
+                pass
+        return None
+
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
         """Call the LLM API (OpenAI-compatible format) with retry."""
         url = f"{self.base_url.rstrip('/')}/chat/completions"

@@ -45,6 +45,12 @@ if [[ "$source_value" != "startup" ]]; then
   exit 0
 fi
 
+# v2: decay scan before listing memories (fast, math only)
+if [[ -f "$SCRIPT_DIR/src/remember_engine.py" ]]; then
+  decay_output="$("$PYTHON_BIN" "$SCRIPT_DIR/src/remember_engine.py" --decay 2>>"$LOG_FILE")" || true
+  log "[ok] decay=${decay_output}"
+fi
+
 if [[ ! -f "$SCRIPT_DIR/list_memory.py" ]]; then
   log "[error] list_memory.py not found: $SCRIPT_DIR/list_memory.py"
   exit 0

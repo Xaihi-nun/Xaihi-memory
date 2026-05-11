@@ -9,4 +9,7 @@ memories = chroma_client.get_all()
 
 for m in memories[-args.number:]:
     print("-" * 50)
-    print(m["metadata"]["importance"], m["metadata"]["topics"], m["content"])
+    # print(m["metadata"]["importance"], m["metadata"]["access_count"], m["metadata"]["base_importance"], m["content"])
+    print(f"create={m['metadata']['created_at']}, imp={m['metadata']['importance']:.4f}, access_count={m['metadata']['access_count']}, base={m['metadata']['base_importance']:.4f}", m["content"])
+    # print(m["metadata"].keys())
+    # break

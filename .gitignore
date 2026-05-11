@@ -25,7 +25,7 @@ chroma_db/
 
 # API keys - do NOT commit this file with real keys
 # Copy config.yaml.example to config.yaml and fill in your own keys
-# config.yaml
+config.yaml
 
 # Custom prompt - write your own prompts/summarize_conversation.txt
 # See prompts/README.md for instructions

@@ -119,5 +119,71 @@ class ChromaDBClient:
             })
         return results
 
+    # ── v2: metadata updates ──────────────────────────────
+
+    def update_metadata(self, memory_id: str, metadata: dict[str, Any]) -> None:
+        """Update metadata fields for a single memory."""
+        # Clean None/empty values before upserting
+        clean_metadata = {
+            k: v for k, v in metadata.items()
+            if v is not None and v != "" and (not isinstance(v, list) or len(v) > 0)
+        }
+        self._collection.update(
+            ids=[memory_id],
+            metadatas=[clean_metadata],
+        )
+
+    def upsert_memory(
+        self,
+        memory_id: str,
+        content: str,
+        embedding: list[float],
+        metadata: dict[str, Any],
+    ) -> None:
+        """Insert or update a memory document."""
+        clean_metadata = {
+            k: v for k, v in metadata.items()
+            if v is not None and v != "" and (not isinstance(v, list) or len(v) > 0)
+        }
+        self._collection.upsert(
+            ids=[memory_id],
+            documents=[content],
+            embeddings=[embedding],
+            metadatas=[clean_metadata],
+        )
+
+    # ── v2: decay helpers ─────────────────────────────────
+
+    def get_where(self, where: dict[str, Any] | None) -> list[dict[str, Any]]:
+        """Get all memories matching a where filter."""
+        try:
+            data = self._collection.get(
+                where=where,
+                include=["documents", "metadatas"],
+            )
+        except Exception:
+            return []
+        results = []
+        for i, doc_id in enumerate(data["ids"]):
+            results.append({
+                "id": doc_id,
+                "content": data["documents"][i],
+                "metadata": data["metadatas"][i] or {},
+            })
+        return results
+
+    # ── v2: tier / date queries ───────────────────────────
+
+    def find_by_tier_and_date(
+        self, tier: str, date_key: str
+    ) -> list[dict[str, Any]]:
+        """Find memories of a given tier whose created_at starts with date_key."""
+        all_mems = self.get_all()
+        return [
+            m for m in all_mems
+            if m["metadata"].get("tier") == tier
+            and m["metadata"].get("created_at", "").startswith(date_key)
+        ]
+
 
 chroma_client = ChromaDBClient()
