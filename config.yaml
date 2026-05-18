@@ -59,7 +59,7 @@ recall:
   max_context_length: 2000
   top_k: 5                  # final recalled memories count
   top_candidates: 20        # vector search candidate window
-  min_similarity: 0.60      # minimum cosine similarity threshold
+  min_recall_score: 0.61    # minimum recall_score (w1×cos + w2×eff) threshold
   weight_similarity: 0.6    # w1: similarity weight in recall_score
   weight_importance: 0.4    # w2: importance weight in recall_score
   format_template: |
