@@ -188,4 +188,5 @@ if __name__ == "__main__":
     tmp_dir = os.path.expanduser(config.get("memory.temp_dir", "~/.claude/memory"))
     os.makedirs(tmp_dir, exist_ok=True)
     with open(os.path.join(tmp_dir, "recall.log"), "wt") as f:
+        print("Current time:", datetime.now().isoformat(), file=f)
         print(result, file=f)
